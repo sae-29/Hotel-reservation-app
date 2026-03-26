@@ -2,7 +2,7 @@
 
 A high-performance hotel reservation system with an intelligent room allocation algorithm that minimizes guest travel distance. Book rooms on the same floor or intelligently distribute across multiple floors using an optimized algorithm.
 
-**Live Demo**: [Deploy to see it in action]([https://hotel-reservation-app-d9v6.onrender.com/])
+**Live Demo**: ([https://hotel-reservation-app-d9v6.onrender.com/])
 
 ---
 
