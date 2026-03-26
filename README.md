@@ -2,7 +2,7 @@
 
 A high-performance hotel reservation system with an intelligent room allocation algorithm that minimizes guest travel distance. Book rooms on the same floor or intelligently distribute across multiple floors using an optimized algorithm.
 
-**Live Demo**: [Deploy to see it in action](#-hosting--deployment)
+**Live Demo**: https://hotel-reservation-app-d9v6.onrender.com/
 
 ---
 
@@ -73,33 +73,8 @@ The server will start on `http://127.0.0.1:5000` by default.
 
 ## 🌐 Hosting & Deployment (Get a Live URL)
 
-### Option 1: **Railway** ⭐ (Recommended - Easiest)
 
-1. **Push to GitHub**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/hotel-reservation-app.git
-   git branch -M main
-   git push -u origin main
-   ```
-
-2. **Deploy on Railway**:
-   - Go to [railway.app](https://railway.app)
-   - Click **"New Project"** → **"Deploy from GitHub"**
-   - Select your repository
-   - Click **"Deploy"**
-   - Get Live URL in 2-3 minutes!
-
-3. **Configuration** (optional):
-   - Railway auto-detects Python + Flask
-   - No additional setup needed
-   - Your app is live at `https://your-app.railway.app`
-
----
-
-### Option 2: **Render** (Free tier available)
+### **Render**
 
 1. **Push to GitHub** (same steps as Option 1)
 
@@ -117,105 +92,6 @@ The server will start on `http://127.0.0.1:5000` by default.
 
 ---
 
-### Option 3: **Heroku** (Paid tier only now)
-
-1. **Push to GitHub** (same as Option 1)
-
-2. **Deploy**:
-   - Go to [heroku.com](https://heroku.com)
-   - Click **"New"** → **"Create New App"**
-   - Connect your GitHub repo
-   - Click **"Deploy Branch"**
-
-*Note: Heroku discontinued free tier, but you can try the 5-50 paid tier*
-
----
-
-### Option 4: **PythonAnywhere** (Easy, Python-focused)
-
-1. **Upload files**:
-   - Go to [pythonanywhere.com](https://pythonanywhere.com)
-   - Sign up (free account available)
-   - Upload your files via dashboard
-
-2. **Configure**:
-   - Create a new web app
-   - Select Flask + Python 3.10
-   - Point to your `app.py`
-   - Reload the app
-
-3. **Get URL**: Your app runs at `https://YOUR_USERNAME.pythonanywhere.com`
-
----
-
-### Option 5: **DigitalOcean App Platform** (More control)
-
-1. **Push to GitHub** (same as Option 1)
-
-2. **Deploy**:
-   - Go to [digitalocean.com/products/app-platform](https://www.digitalocean.com/products/app-platform)
-   - Click **"Create App"** → select your GitHub repo
-   - Configure resource type: **Basic** ($5/month minimum)
-   - Deploy
-
----
-
-## 📡 API Reference
-
-### Get Hotel State
-```http
-GET /api/state
-```
-**Response**: Full hotel occupancy data (all 97 rooms with status)
-
----
-
-### Book Rooms
-```http
-POST /api/book
-Content-Type: application/json
-
-{
-  "count": 2
-}
-```
-
-**Parameters**:
-- `count` (integer): Number of rooms to book (1-5)
-
-**Response**:
-```json
-{
-  "booked": [101, 102],
-  "travel": 0,
-  "state": { /* full hotel state */ }
-}
-```
-
----
-
-### Random Occupancy
-```http
-POST /api/random
-Content-Type: application/json
-
-{
-  "count": 10
-}
-```
-
-**Effect**: Randomly fills N rooms across available rooms
-
----
-
-### Reset All Bookings
-```http
-POST /api/reset
-```
-
-**Effect**: Clears all bookings, resets hotel to full availability
-
----
 
 ## 🧠 Algorithm Explanation
 
@@ -233,27 +109,6 @@ POST /api/reset
 - **Floors 1-9**: 10 rooms each (101-110, 201-210, ..., 901-910)
 - **Floor 10**: 7 rooms (1001-1007)
 - **Position 1**: Closest to lift/stairs (least travel)
-
----
-
-## 🎨 UI Features
-
-- **Real-Time Occupancy Grid**: Visual floor-by-floor room status
-- **Booking Form**: Easy room count selection (1-5 rooms)
-- **History Panel**: Track all bookings with timestamps & room numbers
-- **Modern Design**: Glassmorphism effect, Red Bull color scheme
-- **Responsive**: Works on desktop and tablet
-
----
-
-## 🤝 Contributing
-
-Feel free to fork, modify, and improve! Some ideas:
-- Add room type selection (Standard, Deluxe, Suite)
-- Implement date-range booking
-- Add user authentication
-- Database persistence (SQLite, PostgreSQL)
-- Mobile app version
 
 ---
 
