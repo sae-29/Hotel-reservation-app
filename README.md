@@ -27,7 +27,7 @@ A high-performance hotel reservation system with an intelligent room allocation 
 | **Backend** | Python 3.10+ + Flask 2.3 |
 | **Frontend** | HTML5, CSS3, Vanilla JavaScript |
 | **Database** | In-memory (session-based) |
-| **Deployment** | Railway, Render, Heroku, PythonAnywhere |
+| **Deployment** | Render |
 
 ---
 
