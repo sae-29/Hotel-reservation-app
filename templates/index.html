@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StayGrid — Hotel Reservation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════
+   THEME TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --radius:14px;
+  --radius-sm:9px;
+  --radius-xs:6px;
+  --trans:.22s ease;
+  --font:'Outfit',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+
+[data-theme="dark"] {
+  --bg:#0f1419;
+  --bg2:#1a1f27;
+  --mesh1:rgba(229,28,35,.12);
+  --mesh2:rgba(0,160,223,.1);
+  --mesh3:rgba(253,216,53,.08);
+  --glass:rgba(255,255,255,.08);
+  --glass-b:rgba(255,255,255,.14);
+  --glass-hover:rgba(255,255,255,.12);
+  --text:#ffffff;
+  --text2:#e5e7eb;
+  --text3:#a1a5b0;
+  --accent:#e51c23;
+  --accent-dim:rgba(229,28,35,.15);
+  --accent-glow:rgba(229,28,35,.3);
+  --green:#00c878;
+  --green-dim:rgba(0,200,120,.12);
+  --red:#e51c23;
+  --red-dim:rgba(229,28,35,.12);
+  --yellow:#fdd835;
+  --yellow-dim:rgba(253,216,53,.12);
+  --blue:#00a0df;
+  --blue-dim:rgba(0,160,223,.12);
+  --selected:#ff6600;
+  --selected-dim:rgba(255,102,0,.12);
+  --shadow:0 12px 40px rgba(0,0,0,.6);
+  --shadow-sm:0 4px 20px rgba(0,0,0,.4);
+  --room-bg:rgba(255,255,255,.05);
+  --room-b:rgba(255,255,255,.12);
+}
+
+[data-theme="light"] {
+  --bg:#ffffff;
+  --bg2:#f0f5f9;
+  --mesh1:rgba(229,28,35,.08);
+  --mesh2:rgba(0,160,223,.08);
+  --mesh3:rgba(253,216,53,.06);
+  --glass:rgba(255,255,255,.98);
+  --glass-b:rgba(0,0,0,.08);
+  --glass-hover:rgba(255,255,255,.99);
+  --text:#000000;
+  --text2:#2c3e50;
+  --text3:#7f8c8d;
+  --accent:#e51c23;
+  --accent-dim:rgba(229,28,35,.1);
+  --accent-glow:rgba(229,28,35,.2);
+  --green:#00c878;
+  --green-dim:rgba(0,200,120,.1);
+  --red:#e51c23;
+  --red-dim:rgba(229,28,35,.1);
+  --yellow:#fdd835;
+  --yellow-dim:rgba(253,216,53,.1);
+  --blue:#00a0df;
+  --blue-dim:rgba(0,160,223,.1);
+  --selected:#ff6600;
+  --selected-dim:rgba(255,102,0,.1);
+  --shadow:0 12px 40px rgba(0,0,0,.08);
+  --shadow-sm:0 4px 20px rgba(0,0,0,.05);
+  --room-bg:rgba(229,28,35,.03);
+  --room-b:rgba(229,28,35,.1);
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html, body{
+  width:100%;
+  height:100%;
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  transition:background var(--trans),color var(--trans);
+  overflow:hidden;
+}
+
+/* Smooth scrollbar for better aesthetics */
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--text3);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:var(--text2);}
+
+/* ── Background ambient blobs ── */
+.blob{
+  position:fixed;border-radius:50%;
+  pointer-events:none;z-index:0;
+  filter:blur(120px);
+  animation:blobDrift 20s ease-in-out infinite alternate;
+  opacity:0.25;
+}
+.blob1{width:520px;height:520px;top:-120px;left:-140px;background:#6366f1;}
+.blob2{width:420px;height:420px;bottom:-100px;right:-120px;background:#10b981;animation-duration:24s;}
+.blob3{width:320px;height:320px;top:45%;left:55%;background:#f59e0b;animation-duration:18s;}
+@keyframes blobDrift{
+  0%{transform:translate(0,0) scale(1);}
+  100%{transform:translate(30px,20px) scale(1.06);}
+}
+
+/* ── Subtle grid overlay ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+[data-theme="light"] body::before{
+  background-image:
+    linear-gradient(rgba(0,0,0,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,0,0,.03) 1px,transparent 1px);
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.app{
+  position:relative;z-index:1;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* Structural layout for full-screen responsiveness */
+.app > .header{
+  flex-shrink:0;
+}
+
+.app > .stats-grid{
+  flex-shrink:0;
+}
+
+.app > .controls{
+  flex-shrink:0;
+}
+
+.app > #result-bar {
+  flex-shrink:0;
+}
+
+.app > #travel-panel {
+  flex-shrink:0;
+}
+
+.app > .legend {
+  flex-shrink:0;
+}
+
+.app > .hotel-wrap {
+  flex:1;
+  min-height:200px;
+  overflow:hidden;
+}
+
+.app > #history-panel {
+  flex-shrink:0;
+  margin-top:auto;
+}
+
+/* ── glass card ── */
+.glass{
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+  flex-shrink:0;
+  padding:14px 20px;
+  border-bottom:1.5px solid rgba(255,255,255,.08);
+}
+@media(max-width:1024px){
+  .header{padding:12px 16px;}
+}
+@media(max-width:768px){
+  .header{padding:10px 14px;}
+}
+.logo-area{display:flex;align-items:center;gap:14px;}
+.logo-icon{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:#e51c23;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;box-shadow:0 6px 24px rgba(229,28,35,.5);
+}
+.logo-name{font-size:1.5rem;font-weight:800;letter-spacing:-.8px;color:#ffffff;}
+.logo-name em{font-style:normal;color:#fdd835;}
+.logo-tag{font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:#00a0df;font-family:var(--mono);margin-top:2px;font-weight:600;}
+
+.header-right{display:flex;align-items:center;gap:10px;}
+
+/* Theme toggle */
+.theme-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:99px;
+  background:var(--glass);border:1px solid var(--glass-b);
+  backdrop-filter:blur(12px);
+  cursor:pointer;font-family:var(--font);font-size:.75rem;
+  color:var(--text2);transition:all var(--trans);
+}
+.theme-btn:hover{background:var(--glass-hover);color:var(--text);}
+.theme-icon{font-size:14px;}
+
+/* Occupancy pill */
+.occ-pill{
+  padding:7px 14px;border-radius:99px;
+  background:var(--glass);border:1px solid var(--glass-b);
+  font-family:var(--mono);font-size:.7rem;color:var(--text2);
+  display:flex;align-items:center;gap:6px;
+}
+.occ-bar{
+  width:60px;height:4px;background:var(--room-b);border-radius:99px;overflow:hidden;
+}
+.occ-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease;}
+
+/* ═══════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════ */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+  flex-shrink:0;
+  padding:12px 20px;
+}
+@media(min-width:1400px){
+  .stats-grid{grid-template-columns:repeat(4, 1fr);gap:11px;}
+}
+@media(max-width:1200px){
+  .stats-grid{grid-template-columns:repeat(4, 1fr);gap:9px;padding:11px 16px;}
+}
+@media(max-width:1024px){
+  .stats-grid{grid-template-columns:repeat(2, 1fr);gap:9px;padding:10px 16px;}
+}
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:repeat(2, 1fr);gap:8px;padding:10px 14px;}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr;gap:8px;padding:8px 12px;}
+}
+
+
+.scard{
+  padding:12px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(16px);
+  transition:transform .15s, box-shadow .2s;
+}
+.scard:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.sval{
+  font-size:1.6rem;font-weight:800;line-height:1;
+  font-family:var(--mono);margin-bottom:4px;
+  text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+@media(max-width:1024px){
+  .scard{padding:11px 13px;}
+  .sval{font-size:1.4rem;margin-bottom:3px;}
+}
+@media(max-width:768px){
+  .scard{padding:10px 12px;}
+  .sval{font-size:1.3rem;margin-bottom:2px;}
+}
+.slabel{font-size:.6rem;color:var(--text2);letter-spacing:1.6px;text-transform:uppercase;font-weight:700;}
+.col-avail{color:#00c878;}
+.col-booked{color:#e51c23;}
+.col-sel{color:#fdd835;}
+.col-accent{color:#e51c23;}
+
+/* ═══════════════════════════════════════════
+   CONTROLS
+═══════════════════════════════════════════ */
+.controls{
+  padding:14px 16px;
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:11px;
+  border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);
+  backdrop-filter:blur(20px);
+  border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  flex-shrink:0;
+  margin:12px 20px;
+}
+@media(max-width:1024px){
+  .controls{padding:13px 14px;gap:10px;margin:10px 16px;}
+}
+@media(max-width:768px){
+  .controls{padding:12px 13px;gap:9px;margin:9px 14px;}
+}
+@media(max-width:480px){
+  .controls{padding:11px 12px;gap:8px;margin:8px 12px;}
+}
+.field{flex:0 1 auto;min-width:130px;max-width:220px;}
+@media(max-width:768px){
+  .field{flex:0 1 auto;min-width:120px;}
+}
+@media(max-width:480px){
+  .field{flex:1;min-width:100%;}
+}
+.flabel{
+  display:block;font-size:.6rem;letter-spacing:1.6px;
+  text-transform:uppercase;color:#00a0df;
+  margin-bottom:6px;font-family:var(--mono);font-weight:700;
+}
+input[type="number"]{
+  width:100%;padding:10px 12px;
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.15);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-family:var(--font);font-size:.9rem;outline:none;
+  transition:border-color var(--trans),box-shadow var(--trans);
+  appearance:none;
+  -moz-appearance:textfield;
+  font-weight:500;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type="number"]:focus{
+  border-color:#e51c23;
+  box-shadow:0 0 0 3px rgba(229,28,35,.2);
+  background:rgba(255,255,255,.06);
+}
+
+.btn{
+  font-family:var(--font);font-weight:600;font-size:.72rem;
+  letter-spacing:.25px;border:none;border-radius:var(--radius-sm);
+  padding:10px 18px;cursor:pointer;
+  transition:transform .1s,box-shadow var(--trans),opacity .2s,background var(--trans);
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+  flex-shrink:0;min-width:max-content;
+}
+@media(max-width:768px){
+  .btn{padding:9px 16px;font-size:.68rem;}
+}
+@media(max-width:480px){
+  .btn{padding:8px 14px;font-size:.65rem;}
+}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+.btn-book{
+  background:#e51c23;
+  color:#ffffff;
+  box-shadow:0 4px 16px rgba(229,28,35,.35);
+  border:none;
+  font-weight:700;
+}
+.btn-book:hover:not(:disabled){
+  background:#c91621;
+  box-shadow:0 6px 20px rgba(229,28,35,.5);
+  transform:translateY(-1px);
+}
+
+.btn-random{
+  background:rgba(253,216,53,.15);
+  color:#fdd835;
+  border:1.5px solid #fdd835;
+  font-weight:700;
+}
+.btn-random:hover:not(:disabled){
+  background:rgba(253,216,53,.25);
+  box-shadow:0 3px 12px rgba(253,216,53,.25);
+  border-color:#ffeb3b;
+}
+
+.btn-reset{
+  background:rgba(0,160,223,.15);
+  color:#00a0df;
+  border:1.5px solid #00a0df;
+  font-weight:700;
+}
+.btn-reset:hover:not(:disabled){
+  background:rgba(0,160,223,.25);
+  box-shadow:0 3px 12px rgba(0,160,223,.25);
+  border-color:#00d4ff;
+}
+
+/* ═══════════════════════════════════════════
+   RESULT BAR
+═══════════════════════════════════════════ */
+#result-bar{
+  padding:12px 16px;
+  border-radius:var(--radius-sm);
+  border-left:3px solid #fdd835;
+  background:rgba(253,216,53,.1);
+  backdrop-filter:blur(12px);
+  display:none;flex-wrap:wrap;align-items:center;gap:9px;
+  animation:slideIn .3s ease;
+  border:1.5px solid rgba(245,158,11,.2);
+  margin:10px 20px 0;
+}
+#result-bar.show{display:flex;}
+@media(max-width:1024px){
+  #result-bar{padding:11px 14px;gap:8px;margin:9px 16px 0;}
+}
+@media(max-width:768px){
+  #result-bar{padding:10px 13px;gap:8px;margin:8px 14px 0;}
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
+.chip{
+  background:rgba(253,216,53,.2);border:1px solid #fdd835;
+  color:#fdd835;padding:3px 10px;border-radius:99px;
+  font-family:var(--mono);font-size:.65rem;font-weight:700;
+}
+.result-lbl{font-size:.65rem;color:#00a0df;letter-spacing:1px;text-transform:uppercase;font-family:var(--mono);font-weight:700;}
+.time-info{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;}
+.tinfo-item{font-size:.7rem;font-family:var(--mono);font-weight:700;}
+.tinfo-item span{color:var(--text2);}
+
+/* ═══════════════════════════════════════════
+   TRAVEL TIME BAR (unique visual)
+═══════════════════════════════════════════ */
+#travel-panel{
+  padding:14px 16px;
+  display:none;
+  border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);
+  margin:8px 20px 0;
+}
+#travel-panel.show{display:block;}
+@media(max-width:1024px){
+  #travel-panel{padding:12px 14px;margin:7px 16px 0;}
+}
+@media(max-width:768px){
+  #travel-panel{padding:11px 13px;margin:7px 14px 0;}
+}
+.tp-title{font-size:.6rem;letter-spacing:1.8px;text-transform:uppercase;color:#00a0df;margin-bottom:12px;font-family:var(--mono);font-weight:700;}
+.tbar-row{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
+.tbar-lbl{font-size:.65rem;color:var(--text2);width:110px;flex-shrink:0;font-weight:600;}
+.tbar-track{
+  flex:1;height:7px;background:rgba(255,255,255,.06);
+  border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.08);
+}
+.tbar-fill{
+  height:100%;border-radius:99px;
+  transition:width .8s cubic-bezier(.4,0,.2,1);width:0%;
+}
+.fill-h{background:#e51c23;}
+.fill-v{background:#fdd835;}
+.fill-t{background:#00c878;}
+.tbar-val{font-size:.65rem;font-family:var(--mono);width:55px;text-align:right;font-weight:700;}
+
+/* ═══════════════════════════════════════════
+   LEGEND
+═══════════════════════════════════════════ */
+.legend{
+  display:flex;gap:18px;margin:10px 20px 0;flex-wrap:wrap;
+  padding:0;
+}
+@media(max-width:1024px){
+  .legend{gap:16px;margin:8px 16px 0;}
+}
+@media(max-width:768px){
+  .legend{gap:14px;margin:7px 14px 0;}
+}
+.leg{display:flex;align-items:center;gap:7px;font-size:.65rem;color:var(--text2);font-weight:600;}
+.ldot{width:12px;height:12px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+
+/* ═══════════════════════════════════════════
+   HOTEL VISUALIZATION
+═══════════════════════════════════════════ */
+.hotel-wrap{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  flex:1;
+  overflow:hidden;
+  margin:12px 20px;
+  min-height:200px;
+}
+@media(max-width:1024px){
+  .hotel-wrap{margin:10px 16px;gap:7px;}
+}
+@media(max-width:768px){
+  .hotel-wrap{margin:9px 14px;gap:6px;}
+}
+@media(max-width:480px){
+  .hotel-wrap{margin:8px 12px;}
+}
+
+/* Lift shaft */
+.lift-col{
+  flex-shrink:0;width:36px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:6px;
+}
+.lift-lbl{
+  font-size:.5rem;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--text3);writing-mode:vertical-rl;transform:rotate(180deg);
+  white-space:nowrap;font-family:var(--mono);
+  height:32px;
+  display:flex;align-items:center;
+}
+.lift-shaft{
+  width:30px;flex:1;min-height:100px;
+  background:rgba(229,28,35,.1);
+  border:1.5px solid rgba(229,28,35,.25);
+  border-radius:8px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:space-evenly;
+  padding:10px 0;gap:0;
+}
+.lift-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#e51c23;
+  box-shadow:0 0 5px rgba(229,28,35,.8);
+  animation:liftBlink 2s ease-in-out infinite;
+}
+.lift-dot:nth-child(2){animation-delay:.5s;}
+.lift-dot:nth-child(3){animation-delay:1s;}
+.lift-dot:nth-child(4){animation-delay:1.5s;}
+@keyframes liftBlink{0%,100%{opacity:.25;}50%{opacity:.8;}}
+
+/* Grid */
+.grid-area{flex:1;overflow-x:auto;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:3px;}
+
+.floor-row{
+  display:flex;align-items:center;gap:4px;
+  flex-shrink:0;
+}
+.floor-lbl{
+  width:32px;flex-shrink:0;
+  font-size:.5rem;font-family:var(--mono);
+  color:var(--text3);text-align:right;padding-right:6px;
+}
+.rooms-line{display:flex;gap:3px;flex-wrap:nowrap;}
+
+/* ── Room cell ── */
+.room{
+  width:48px;height:40px;
+  border-radius:6px;
+  border:1px solid var(--room-b);
+  background:var(--room-bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+  transition:transform .15s,box-shadow .18s,background .2s,border-color .2s;
+  cursor:default;
+  backdrop-filter:blur(4px);
+}
+@media(min-width:1400px){
+  .room{width:52px;height:44px;}
+}
+@media(max-width:1024px){
+  .room{width:44px;height:38px;}
+}
+@media(max-width:768px){
+  .room{width:40px;height:36px;}
+}
+@media(max-width:480px){
+  .room{width:36px;height:32px;}
+}
+.room:hover{transform:scale(1.06);z-index:20;box-shadow:var(--shadow);}
+
+.rn{
+  font-size:.55rem;font-weight:600;
+  font-family:var(--mono);color:var(--text2);
+  line-height:1;
+}
+.rs{font-size:.45rem;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:.5px;}
+@media(max-width:1024px){
+  .rn{font-size:.5rem;}
+  .rs{font-size:.42rem;}
+}
+@media(max-width:768px){
+  .rn{font-size:.48rem;}
+  .rs{font-size:.4rem;}
+}
+@media(max-width:480px){
+  .rn{font-size:.44rem;}
+  .rs{font-size:.38rem;}
+}
+
+/* State: available */
+.room.available{
+  background:rgba(0,200,120,.15);
+  border:1.5px solid #00c878;
+}
+.room.available .rn{color:#00c878;font-weight:700;}
+.room.available .rs{color:rgba(0,200,120,.8);}
+
+/* State: booked */
+.room.booked{
+  background:rgba(229,28,35,.15);
+  border:1.5px solid #e51c23;
+}
+.room.booked .rn{color:#e51c23;font-weight:700;}
+.room.booked .rs{color:rgba(229,28,35,.8);}
+
+/* State: selected (just booked) */
+.room.selected{
+  background:rgba(253,216,53,.2);
+  border:1.5px solid #fdd835;
+  box-shadow:0 0 14px rgba(253,216,53,.4);
+  animation:selectedPulse 1.6s ease-in-out infinite;
+}
+.room.selected .rn{color:#fdd835;font-weight:700;}
+.room.selected .rs{color:rgba(253,216,53,.9);}
+
+@keyframes selectedPulse{
+  0%,100%{box-shadow:0 0 10px rgba(255,195,0,.25);}
+  50%{box-shadow:0 0 18px rgba(255,195,0,.5);}
+}
+
+/* ── Tooltip ── */
+.rtip{
+  position:absolute;bottom:105%;left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--glass-b);
+  padding:5px 9px;border-radius:var(--radius-xs);
+  font-size:.55rem;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .18s;z-index:100;color:var(--text);
+  backdrop-filter:blur(12px);box-shadow:var(--shadow-sm);
+}
+.room:hover .rtip{opacity:1;}
+
+/* ═══════════════════════════════════════════
+   BOOKING HISTORY (unique feature)
+═══════════════════════════════════════════ */
+#history-panel{
+  margin:0;padding:14px 16px;display:none;
+  border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);
+  border-top:1.5px solid rgba(255,255,255,.08);
+  flex-shrink:0;
+}
+#history-panel.show{display:block;}
+@media(max-width:1024px){
+  #history-panel{padding:12px 14px;}
+}
+@media(max-width:768px){
+  #history-panel{padding:11px 13px;}
+}
+.hp-title{
+  font-size:.6rem;letter-spacing:1.8px;text-transform:uppercase;
+  color:#00a0df;margin-bottom:11px;font-family:var(--mono);font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.hp-clear{
+  font-size:.58rem;cursor:pointer;color:#e51c23;
+  background:none;border:none;font-family:var(--mono);
+  letter-spacing:1px;cursor:pointer;padding:2px 7px;
+  border-radius:4px;transition:background var(--trans);font-weight:700;
+  border:1px solid rgba(229,28,35,.3);
+}
+.hp-clear:hover{background:rgba(229,28,35,.2);}
+
+.history-list{display:flex;flex-direction:column;gap:7px;max-height:120px;overflow-y:auto;}
+.history-list::-webkit-scrollbar{width:4px;}
+.history-list::-webkit-scrollbar-track{background:transparent;}
+.history-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:99px;}
+
+.hitem{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 11px;border-radius:var(--radius-xs);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  font-size:.65rem;flex-wrap:wrap;
+}
+.hitem-num{
+  font-family:var(--mono);font-size:.6rem;color:#00a0df;
+  width:24px;flex-shrink:0;font-weight:700;
+}
+.hitem-rooms{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
+.hchip{
+  background:rgba(253,216,53,.15);border:1px solid #fdd835;
+  color:#fdd835;padding:1.5px 7px;border-radius:99px;
+  font-family:var(--mono);font-size:.6rem;font-weight:700;
+}
+.hitem-time{
+  font-family:var(--mono);font-size:.62rem;color:#00a0df;
+  margin-left:auto;white-space:nowrap;font-weight:700;
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:16px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:#1a1a25;border:1.5px solid rgba(255,255,255,.15);
+  backdrop-filter:blur(16px);
+  padding:10px 20px;border-radius:99px;
+  font-size:.72rem;letter-spacing:.2px;
+  transition:transform .32s cubic-bezier(.34,1.56,.64,1);
+  z-index:999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.8);
+  font-weight:600;
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.ok{border-color:rgba(0,200,120,.5);color:#00c878;}
+#toast.err{border-color:rgba(229,28,35,.5);color:#e51c23;}
+#toast.info{border-color:rgba(0,160,223,.5);color:#00a0df;}
+
+/* ═══════════════════════════════════════════
+   LOADING OVERLAY
+═══════════════════════════════════════════ */
+#loader{
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+  transition:opacity .4s;
+}
+#loader.hide{opacity:0;pointer-events:none;}
+.loader-ring{
+  width:42px;height:42px;border-radius:50%;
+  border:3px solid var(--room-b);
+  border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loader-txt{font-size:.72rem;color:var(--text2);letter-spacing:2px;font-family:var(--mono);}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:1024px){
+  .room{width:48px;height:40px;}
+  .rn{font-size:.58rem;}
+  .rs{font-size:.48rem;}
+  .floor-row{gap:4px;}
+  .rooms-line{gap:3px;}
+}
+
+@media(max-width:768px){
+  .stats-grid{gap:10px;}
+  .controls{padding:18px 20px;gap:12px;}
+  .room{width:44px;height:37px;}
+  .rn{font-size:.55rem;}
+}
+
+@media(max-width:640px){
+  .app{padding:20px 16px 40px;}
+  .room{width:37px;height:33px;}
+  .rn{font-size:.52rem;}
+  .rs{display:none;}
+  .rtip{display:none;}
+  .floor-lbl{width:26px;}
+  .lift-lbl{font-size:.48rem;}
+}
+
+@media(max-width:480px){
+  .app{padding:16px 12px 30px;}
+  .header{margin-bottom:16px;}
+  .controls{padding:16px 18px;flex-direction:column;}
+  .field{min-width:100%;}
+  .btn{width:100%;}
+  .room{width:32px;height:29px;}
+  .rn{font-size:.48rem;}
+  .floor-row{gap:3px;}
+  .rooms-line{gap:2px;}
+}
+</style>
+</head>
+<body>
+
+<!-- bg blobs -->
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<!-- loader -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-txt">INITIALISING HOTEL</div>
+</div>
+
+<div class="app">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">🏨</div>
+      <div>
+        <div class="logo-name">Stay<em>Grid</em></div>
+        <div class="logo-tag">Hotel Room Reservation System</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="occ-pill">
+        <span id="occ-txt">0%</span>
+        <div class="occ-bar"><div class="occ-fill" id="occ-fill" style="width:0%"></div></div>
+        <span style="color:var(--text3);font-size:.62rem;">OCC</span>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()">
+        <span class="theme-icon" id="theme-icon">☀️</span>
+        <span id="theme-lbl">Light</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STATS ── -->
+  <div class="stats-grid">
+    <div class="scard">
+      <div class="sval col-avail" id="s-avail">97</div>
+      <div class="slabel">Available</div>
+    </div>
+    <div class="scard">
+      <div class="sval col-booked" id="s-booked">0</div>
+      <div class="slabel">Occupied</div>
+    </div>
+    <div class="scard">
+      <div class="sval col-sel" id="s-sel">0</div>
+      <div class="slabel">Just Booked</div>
+    </div>
+    <div class="scard">
+      <div class="sval col-accent">97</div>
+      <div class="slabel">Total Rooms</div>
+    </div>
+  </div>
+
+  <!-- ── CONTROLS ── -->
+  <div class="glass controls">
+    <div class="field">
+      <label class="flabel" for="rcount">No. of Rooms (1–5)</label>
+      <input type="number" id="rcount" min="1" max="5" value="1" placeholder="Enter 1 to 5"/>
+    </div>
+    <button class="btn btn-book" id="btn-book" onclick="doBook()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      Book Rooms
+    </button>
+    <button class="btn btn-random" onclick="doRandom()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22M22 18l-4-4 4-4"/><path d="M18 2l4 4-4 4"/></svg>
+      Random Occupancy
+    </button>
+    <button class="btn btn-reset" onclick="doReset()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Reset All
+    </button>
+  </div>
+
+  <!-- ── RESULT BAR ── -->
+  <div id="result-bar">
+    <span class="result-lbl">Booked:</span>
+    <div id="res-chips"></div>
+    <div class="time-info">
+      <div class="tinfo-item"><span>H: </span><span id="t-h" style="color:var(--accent)">–</span></div>
+      <div class="tinfo-item"><span>V: </span><span id="t-v" style="color:var(--yellow)">–</span></div>
+      <div class="tinfo-item"><span>Total: </span><span id="t-tot" style="color:var(--green);font-weight:600">–</span></div>
+    </div>
+  </div>
+
+  <!-- ── TRAVEL PANEL ── -->
+  <div class="glass" id="travel-panel">
+    <p class="tp-title">▸ Travel Time Breakdown</p>
+    <div class="tbar-row">
+      <div class="tbar-lbl">Horizontal travel</div>
+      <div class="tbar-track"><div class="tbar-fill fill-h" id="bar-h"></div></div>
+      <div class="tbar-val col-accent" id="bv-h">0 min</div>
+    </div>
+    <div class="tbar-row">
+      <div class="tbar-lbl">Vertical travel</div>
+      <div class="tbar-track"><div class="tbar-fill fill-v" id="bar-v"></div></div>
+      <div class="tbar-val" style="color:var(--yellow)" id="bv-v">0 min</div>
+    </div>
+    <div class="tbar-row" style="margin-top:6px;">
+      <div class="tbar-lbl" style="color:var(--text);font-weight:600;">Total</div>
+      <div class="tbar-track"><div class="tbar-fill fill-t" id="bar-t"></div></div>
+      <div class="tbar-val col-avail" style="font-weight:600" id="bv-t">0 min</div>
+    </div>
+  </div>
+
+  <!-- ── LEGEND ── -->
+  <div class="legend">
+    <div class="leg">
+      <div class="ldot" style="background:rgba(34,255,153,.15);border:1.5px solid #22ff99;"></div>
+      Available
+    </div>
+    <div class="leg">
+      <div class="ldot" style="background:rgba(255,68,68,.15);border:1.5px solid #ff4444;"></div>
+      Occupied
+    </div>
+    <div class="leg">
+      <div class="ldot" style="background:rgba(255,195,0,.2);border:2px solid #ffcc00;box-shadow:0 0 8px rgba(255,195,0,.4);"></div>
+      Just Booked
+    </div>
+  </div>
+
+  <!-- ── HOTEL VISUALIZATION ── -->
+  <div class="hotel-wrap">
+    <div class="lift-col">
+      <div class="lift-lbl">Lift / Stairs</div>
+      <div class="lift-shaft" id="lift-shaft">
+        <div class="lift-dot"></div>
+        <div class="lift-dot"></div>
+        <div class="lift-dot"></div>
+        <div class="lift-dot"></div>
+      </div>
+    </div>
+    <div class="grid-area" id="hotel-grid"></div>
+  </div>
+
+  <!-- ── BOOKING HISTORY ── -->
+  <div class="glass" id="history-panel">
+    <div class="hp-title">
+      ▸ Booking History
+      <button class="hp-clear" onclick="clearHistory()">CLEAR</button>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let state = null;
+let lastBooked = [];
+let bookingHistory = [];
+let historyCounter = 0;
+
+// ════════════════════════════════════════════
+//  API HELPERS
+// ════════════════════════════════════════════
+async function api(path, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  return r.json();
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+async function init() {
+  const data = await api('/api/state');
+  applyState(data);
+  document.getElementById('loader').classList.add('hide');
+}
+
+// ════════════════════════════════════════════
+//  APPLY STATE → render
+// ════════════════════════════════════════════
+function applyState(data, newBooked = []) {
+  state = data;
+  lastBooked = newBooked;
+  renderGrid(data.rooms, newBooked);
+  renderStats(data.stats);
+}
+
+// ════════════════════════════════════════════
+//  RENDER GRID
+// ════════════════════════════════════════════
+function renderGrid(rooms, selected) {
+  const selSet = new Set(selected);
+  const grid = document.getElementById('hotel-grid');
+  const byFloor = {};
+
+  rooms.forEach(r => {
+    (byFloor[r.floor] = byFloor[r.floor] || []).push(r);
+  });
+
+  grid.innerHTML = '';
+
+  // Render top floor → floor 1
+  for (let f = 10; f >= 1; f--) {
+    const floorRooms = (byFloor[f] || []).sort((a, b) => a.position - b.position);
+
+    const row = document.createElement('div');
+    row.className = 'floor-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'floor-lbl';
+    lbl.textContent = `F${f}`;
+    row.appendChild(lbl);
+
+    const line = document.createElement('div');
+    line.className = 'rooms-line';
+
+    floorRooms.forEach(r => {
+      const isSelected = selSet.has(r.number);
+      const statusClass = isSelected ? 'selected' : r.status;
+
+      const cell = document.createElement('div');
+      cell.className = `room ${statusClass}`;
+      cell.id = `room-${r.number}`;
+
+      const statusLabel = isSelected ? 'new' : (r.status === 'booked' ? 'occ' : 'free');
+      cell.innerHTML = `
+        <div class="rn">${r.number}</div>
+        <div class="rs">${statusLabel}</div>
+        <div class="rtip">Room ${r.number} · Floor ${r.floor} · Pos ${r.position}<br>Status: ${isSelected ? 'Just Booked' : r.status}</div>
+      `;
+      line.appendChild(cell);
+    });
+
+    row.appendChild(line);
+    grid.appendChild(row);
+  }
+
+  // Size lift shaft to match grid
+  const gridH = grid.offsetHeight;
+  if (gridH > 0) document.getElementById('lift-shaft').style.minHeight = gridH + 'px';
+}
+
+// ════════════════════════════════════════════
+//  RENDER STATS
+// ════════════════════════════════════════════
+function renderStats(stats) {
+  document.getElementById('s-avail').textContent  = stats.available;
+  document.getElementById('s-booked').textContent = stats.booked;
+  document.getElementById('s-sel').textContent    = lastBooked.length;
+  document.getElementById('occ-txt').textContent  = stats.occupancy_pct + '%';
+  document.getElementById('occ-fill').style.width = stats.occupancy_pct + '%';
+}
+
+// ════════════════════════════════════════════
+//  BOOK
+// ════════════════════════════════════════════
+async function doBook() {
+  const n = parseInt(document.getElementById('rcount').value);
+  if (!n || n < 1 || n > 5) { toast('Enter a number between 1 and 5', 'err'); return; }
+
+  setBusy(true);
+  const data = await api('/api/book', 'POST', { count: n });
+  setBusy(false);
+
+  if (data.error) { toast(data.error, 'err'); return; }
+
+  applyState(data.state, data.booked);
+  showResult(data.booked, data.travel);
+  showTravel(data.travel);
+  addHistory(data.booked, data.travel);
+  toast(`Booked ${data.booked.length} room(s) · ${data.travel.total} min total`, 'ok');
+}
+
+// ════════════════════════════════════════════
+//  RANDOM
+// ════════════════════════════════════════════
+async function doRandom() {
+  const n = parseInt(document.getElementById('rcount').value) || 1;
+  setBusy(true);
+  const data = await api('/api/random', 'POST', { count: n });
+  setBusy(false);
+
+  if (data.error) { toast(data.error, 'err'); return; }
+
+  applyState(data.state, []);
+  document.getElementById('result-bar').classList.remove('show');
+  document.getElementById('travel-panel').classList.remove('show');
+  toast(`${data.occupied} rooms randomly occupied`, 'info');
+}
+
+// ════════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════════
+async function doReset() {
+  setBusy(true);
+  const data = await api('/api/reset', 'POST');
+  setBusy(false);
+
+  applyState(data.state, []);
+  document.getElementById('result-bar').classList.remove('show');
+  document.getElementById('travel-panel').classList.remove('show');
+  toast('All bookings cleared', 'info');
+}
+
+// ════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════
+function showResult(booked, travel) {
+  const bar = document.getElementById('result-bar');
+  document.getElementById('res-chips').innerHTML =
+    booked.map(n => `<span class="chip">${n}</span>`).join('');
+  document.getElementById('t-h').textContent   = travel.horizontal + ' min';
+  document.getElementById('t-v').textContent   = travel.vertical + ' min';
+  document.getElementById('t-tot').textContent = travel.total + ' min';
+  bar.classList.add('show');
+}
+
+function showTravel(t) {
+  const panel = document.getElementById('travel-panel');
+  panel.classList.add('show');
+  const max = Math.max(t.total, 8);
+  setTimeout(() => {
+    document.getElementById('bar-h').style.width = (t.horizontal / max * 100) + '%';
+    document.getElementById('bar-v').style.width = (t.vertical   / max * 100) + '%';
+    document.getElementById('bar-t').style.width = '100%';
+    document.getElementById('bv-h').textContent  = t.horizontal + ' min';
+    document.getElementById('bv-v').textContent  = t.vertical   + ' min';
+    document.getElementById('bv-t').textContent  = t.total      + ' min';
+  }, 60);
+}
+
+function addHistory(booked, travel) {
+  historyCounter++;
+  bookingHistory.unshift({ id: historyCounter, booked, travel });
+  const list = document.getElementById('history-list');
+  const panel = document.getElementById('history-panel');
+
+  const item = document.createElement('div');
+  item.className = 'hitem';
+  item.innerHTML = `
+    <div class="hitem-num">#${historyCounter}</div>
+    <div class="hitem-rooms">${booked.map(n => `<span class="hchip">${n}</span>`).join('')}</div>
+    <div class="hitem-time">⏱ ${travel.total} min</div>
+  `;
+  list.prepend(item);
+  panel.classList.add('show');
+}
+
+function clearHistory() {
+  bookingHistory = [];
+  historyCounter = 0;
+  document.getElementById('history-list').innerHTML = '';
+  document.getElementById('history-panel').classList.remove('show');
+}
+
+function setBusy(on) {
+  document.getElementById('btn-book').disabled = on;
+}
+
+let toastTimer;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 2800);
+}
+
+// ════════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════════
+function toggleTheme() {
+  const html  = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = isDark ? '🌙' : '☀️';
+  document.getElementById('theme-lbl').textContent  = isDark ? 'Dark'  : 'Light';
+}
+
+// ════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.id === 'rcount') doBook();
+});
+
+// Boot
+init();
+</script>
+</body>
+</html>
