@@ -77,10 +77,6 @@ def random_occupancy():
 def reset():
     hotel.reset()
     return jsonify({"state": hotel.get_state()})
-@app.route("/api/reset", methods=["POST"])
-def reset():
-    hotel.reset()
-    return jsonify({"state": hotel.get_state()})
 
 
 if __name__ == "__main__":
